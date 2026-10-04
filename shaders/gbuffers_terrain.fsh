@@ -5,6 +5,8 @@
 // #define GRID
 #define GRID_DENSITY 2 // Grid squares per block: 1 = full block, 2 = half block, 4 = quarter block [1 2 4]
 #define GRID_SIDES // Also draw the grid on vertical faces
+#define TEXTURES // Blend a hint of the original texture detail over the palette colors
+#define TEXTURE_STRENGTH 0.25 // How strong the texture hint is [0.1 0.25 0.5 0.75 1.0]
 
 #include "/lib/palette.glsl"
 
@@ -31,6 +33,11 @@ void main() {
 
     vec4 avgColor = textureLod(gtexture, texcoord, 10.0);
     vec3 flatColor = snapToPalette(avgColor.rgb);
+
+    #ifdef TEXTURES
+    // Add only the texture's detail (pixel minus tile average) so the palette hue is kept
+    flatColor = clamp(flatColor + (origTex.rgb - avgColor.rgb) * TEXTURE_STRENGTH, 0.0, 1.0);
+    #endif
 
     vec3 finalColor = flatColor * glcolor.rgb * texture(lightmap, lmcoord).rgb;
 
