@@ -1,3 +1,11 @@
 option.NORMAL_PALETTE=Normal Palette
 value.NORMAL_PALETTE.true=Normal (Vanilla)
 value.NORMAL_PALETTE.false=Pastel (Sketchup)
+
+option.SHADOWS=Hard Shadows
+value.SHADOWS.true=Enabled
+value.SHADOWS.false=Disabled
+
+option.GRID=CAD Grid
+value.GRID.true=Enabled
+value.GRID.false=Disabled

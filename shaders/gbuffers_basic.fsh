@@ -1,5 +1,9 @@
 #version 330 compatibility
 
+// #define NORMAL_PALETTE
+// #define SHADOWS
+// #define GRID
+
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform float alphaTestRef = 0.1;
