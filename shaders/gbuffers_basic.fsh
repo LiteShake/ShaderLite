@@ -20,5 +20,5 @@ void main() {
     vec4 avgColor = textureLod(gtexture, texcoord, 10.0);
     vec3 flatColor = floor(avgColor.rgb * 6.0) / 6.0;
 
-    color = vec4(flatColor * glcolor.rgb * texture(lightmap, lmcoord).rgb, 1.0);
+    color = vec4(flatColor * glcolor.rgb * texture(lightmap, lmcoord).rgb, origTex.a);
 }
