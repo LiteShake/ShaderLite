@@ -1,5 +1,7 @@
 #version 330 compatibility
 
+// #define NORMAL_PALETTE 
+
 #include "/lib/palette.glsl" 
 
 uniform sampler2D gtexture;

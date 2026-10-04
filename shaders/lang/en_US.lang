@@ -1,0 +1,3 @@
+option.NORMAL_PALETTE=Normal Palette
+value.NORMAL_PALETTE.true=Normal (Vanilla)
+value.NORMAL_PALETTE.false=Pastel (Sketchup)

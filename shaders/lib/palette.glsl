@@ -1,14 +1,11 @@
-
 #ifndef PALETTE_GLSL
 #define PALETTE_GLSL
 
-// ------------------------------------------------------------
-// ULTRA SKETCHUP PALETTE
-// Edit these colors to change the look of the entire world.
-// ------------------------------------------------------------
-const int PALETTE_SIZE = 37;
-
-const vec3 PALETTE[PALETTE_SIZE] = vec3[](
+// ============================================================
+// PASTEL PALETTE (Ultra Sketchup)
+// ============================================================
+const int PASTEL_SIZE = 37;
+const vec3 PASTEL[PASTEL_SIZE] = vec3[](
     // --- LIGHT PASTELS ---
     vec3(1.000, 0.702, 0.776), // FFB3C6 - Pastel Pink
     vec3(0.627, 0.847, 1.000), // A0D8FF - Sky Blue
@@ -49,23 +46,66 @@ const vec3 PALETTE[PALETTE_SIZE] = vec3[](
     vec3(0.533, 0.478, 0.588), // 887A96 - Muted Plum
     vec3(0.620, 0.620, 0.620), // 9E9E9E - Stone
     vec3(0.784, 0.784, 0.784), // C8C8C8 - Light Stone
-    vec3(0.949, 0.949, 0.949),  // F2F2F2 - Bright White
-    vec3(0.180, 0.180, 0.180)  // 2E2E2E - Deepslate Grey
+    vec3(0.949, 0.949, 0.949), // F2F2F2 - Bright White
+    
+    // --- DARK TONES (Added back for Deepslate!) ---
+    vec3(0.220, 0.240, 0.260)  // 38403D - Muted Deepslate Gray
 );
 
-// Find the nearest palette color using Euclidean distance
+// ============================================================
+// NORMAL PALETTE (Vanilla-esque)
+// ============================================================
+const int NORMAL_SIZE = 16;
+const vec3 NORMAL[NORMAL_SIZE] = vec3[](
+    vec3(0.15, 0.15, 0.15), // Deepslate
+    vec3(0.35, 0.35, 0.35), // Stone
+    vec3(0.45, 0.33, 0.22), // Dirt
+    vec3(0.35, 0.55, 0.22), // Grass
+    vec3(0.20, 0.40, 0.15), // Leaves
+    vec3(0.55, 0.42, 0.25), // Wood
+    vec3(0.85, 0.80, 0.60), // Sand
+    vec3(0.18, 0.35, 0.60), // Water
+    vec3(0.30, 0.80, 0.80), // Diamond
+    vec3(0.65, 0.15, 0.15), // Redstone
+    vec3(0.75, 0.75, 0.75), // Iron
+    vec3(0.10, 0.10, 0.10), // Coal
+    vec3(0.60, 0.60, 0.60), // Gravel
+    vec3(0.90, 0.90, 0.90), // White Wool
+    vec3(0.80, 0.60, 0.20), // Gold
+    vec3(0.40, 0.20, 0.60)  // Amethyst
+);
+
+// ============================================================
+// SNAP FUNCTION
+// ============================================================
 vec3 snapToPalette(vec3 color) {
     float minDist = 1e10;
-    vec3 bestColor = PALETTE[0];
+    vec3 bestColor = vec3(0.0);
 
-    for (int i = 0; i < PALETTE_SIZE; i++) {
-        vec3 diff = color - PALETTE[i];
-        float dist = dot(diff, diff);
-        if (dist < minDist) {
-            minDist = dist;
-            bestColor = PALETTE[i];
+    #ifdef NORMAL_PALETTE
+        // Use Normal Palette
+        bestColor = NORMAL[0];
+        for (int i = 0; i < NORMAL_SIZE; i++) {
+            vec3 diff = color - NORMAL[i];
+            float dist = dot(diff, diff);
+            if (dist < minDist) {
+                minDist = dist;
+                bestColor = NORMAL[i];
+            }
         }
-    }
+    #else
+        // Use Pastel Palette
+        bestColor = PASTEL[0];
+        for (int i = 0; i < PASTEL_SIZE; i++) {
+            vec3 diff = color - PASTEL[i];
+            float dist = dot(diff, diff);
+            if (dist < minDist) {
+                minDist = dist;
+                bestColor = PASTEL[i];
+            }
+        }
+    #endif
+
     return bestColor;
 }
 
