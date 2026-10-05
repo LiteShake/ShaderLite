@@ -3,6 +3,8 @@
 // #define SHADOWS
 // #define DEBUG_SHADOWS
 
+#include "/lib/palette.glsl"
+
 // Shadow map settings: Iris reads these from the shader source, NOT shaders.properties
 const int   shadowMapResolution     = 4096;
 const float shadowDistance          = 128.0;
@@ -108,7 +110,7 @@ void main() {
         #endif
     #endif
 
-    finalColor = mix(finalColor, vec3(0.15), edge);
+    finalColor = mix(finalColor, paletteLineColor(), edge);
 
     color = vec4(finalColor, scene.a);
 }

@@ -1,6 +1,9 @@
 #ifndef PALETTE_GLSL
 #define PALETTE_GLSL
 
+// Single place for the palette option so every shader (terrain, water...) agrees
+#define PALETTE 0 // Color palette: 0 = Pastel, 1 = Normal, 2 = Grayscale, 3 = Material White, 4 = Blueprint [0 1 2 3 4]
+
 // ============================================================
 // PASTEL PALETTE (Ultra Sketchup)
 // ============================================================
@@ -76,37 +79,89 @@ const vec3 NORMAL[NORMAL_SIZE] = vec3[](
 );
 
 // ============================================================
+// BLUEPRINT PALETTE (navy -> pale cyan, picked by brightness)
+// ============================================================
+const int BLUEPRINT_SIZE = 6;
+const vec3 BLUEPRINT[BLUEPRINT_SIZE] = vec3[](
+    vec3(0.040, 0.100, 0.240), // 0A1A3D - Deep Navy
+    vec3(0.070, 0.180, 0.400), // 122E66 - Navy
+    vec3(0.120, 0.300, 0.580), // 1F4D94 - Blueprint Blue
+    vec3(0.250, 0.480, 0.780), // 407AC7 - Mid Blue
+    vec3(0.550, 0.740, 0.950), // 8CBDF2 - Light Blue
+    vec3(0.880, 0.950, 1.000)  // E0F2FF - Pale Cyan White
+);
+
+// Line color for outlines/grid that stays readable on the active palette
+vec3 paletteLineColor() {
+    #if PALETTE == 4
+        return vec3(0.85, 0.93, 1.0);  // white-cyan lines on blue paper
+    #else
+        return vec3(0.10);
+    #endif
+}
+
+// ============================================================
+// BIOME TINT
+// Grass, leaves, vines and water get a green/blue vertex tint. That tint would
+// push the monochrome palettes (Grayscale, Material White, Blueprint) back to
+// green, so for those we only keep its brightness.
+// ============================================================
+vec3 applyVertexTint(vec3 flatColor, vec3 vertexColor) {
+    #if PALETTE >= 2
+        float l = dot(vertexColor, vec3(0.2126, 0.7152, 0.0722));
+        return flatColor * mix(1.0, l, 0.7);
+    #else
+        return flatColor * vertexColor;
+    #endif
+}
+
+// ============================================================
 // SNAP FUNCTION
 // ============================================================
+float paletteLuma(vec3 c) {
+    return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
+
 vec3 snapToPalette(vec3 color) {
-    float minDist = 1e10;
-    vec3 bestColor = vec3(0.0);
+    #if PALETTE == 2
+        // GRAYSCALE: 8 evenly spaced grays from 0.12 to 0.96
+        float l = paletteLuma(color);
+        float idx = clamp(floor((l - 0.12) / 0.12 + 0.5), 0.0, 7.0);
+        return vec3(0.12 + idx * 0.12);
 
-    #ifdef NORMAL_PALETTE
-        // Use Normal Palette
-        bestColor = NORMAL[0];
-        for (int i = 0; i < NORMAL_SIZE; i++) {
-            vec3 diff = color - NORMAL[i];
-            float dist = dot(diff, diff);
-            if (dist < minDist) {
-                minDist = dist;
-                bestColor = NORMAL[i];
-            }
-        }
+    #elif PALETTE == 4
+        // BLUEPRINT: 6 blues chosen by brightness
+        float l = paletteLuma(color);
+        int idx = int(clamp(floor(l * 6.0), 0.0, 5.0));
+        return BLUEPRINT[idx];
+
+    #elif PALETTE == 3
+        // MATERIAL WHITE: clay-render look, 5 soft white steps with a faint warm tint
+        float l = paletteLuma(color);
+        float idx = clamp(floor(l * 5.0), 0.0, 4.0);
+        float v = mix(0.72, 0.97, idx / 4.0);
+        return vec3(v, v * 0.995, v * 0.985);
+
     #else
-        // Use Pastel Palette
-        bestColor = PASTEL[0];
-        for (int i = 0; i < PASTEL_SIZE; i++) {
-            vec3 diff = color - PASTEL[i];
-            float dist = dot(diff, diff);
-            if (dist < minDist) {
-                minDist = dist;
-                bestColor = PASTEL[i];
+        float minDist = 1e10;
+        vec3 bestColor = vec3(0.0);
+        #if PALETTE == 1
+            bestColor = NORMAL[0];
+            for (int i = 0; i < NORMAL_SIZE; i++) {
+                vec3 diff = color - NORMAL[i];
+                float dist = dot(diff, diff);
+                if (dist < minDist) { minDist = dist; bestColor = NORMAL[i]; }
             }
-        }
+        #else
+            bestColor = PASTEL[0];
+            for (int i = 0; i < PASTEL_SIZE; i++) {
+                vec3 diff = color - PASTEL[i];
+                float dist = dot(diff, diff);
+                if (dist < minDist) { minDist = dist; bestColor = PASTEL[i]; }
+            }
+        #endif
+        return bestColor;
     #endif
-
-    return bestColor;
 }
 
 #endif

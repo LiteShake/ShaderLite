@@ -1,11 +1,17 @@
-option.NORMAL_PALETTE=Normal Palette
-value.NORMAL_PALETTE.true=Normal (Vanilla)
-value.NORMAL_PALETTE.false=Pastel (Sketchup)
-
-option.SHADOWS=Hard Shadows
-value.SHADOWS.true=Enabled
-value.SHADOWS.false=Disabled
-
-option.GRID=CAD Grid
-value.GRID.true=Enabled
-value.GRID.false=Disabled
+option.PALETTE=Color Palette
+value.PALETTE.0=Pastel
+value.PALETTE.1=Normal
+value.PALETTE.2=Grayscale
+value.PALETTE.3=Material White
+value.PALETTE.4=Blueprint
+option.GRID=Grid
+option.GRID_MODE=Grid Mode
+value.GRID_MODE.0=Squares
+value.GRID_MODE.1=Triangles
+option.GRID_DENSITY=Grid Density
+value.GRID_DENSITY.1=1x (block)
+value.GRID_DENSITY.2=2x (half block)
+value.GRID_DENSITY.4=4x (quarter block)
+option.GRID_SIDES=Side Grid
+option.TEXTURES=Texture Hint
+option.TEXTURE_STRENGTH=Texture Strength

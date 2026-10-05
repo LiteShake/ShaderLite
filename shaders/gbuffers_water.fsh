@@ -1,4 +1,3 @@
-
 #version 330 compatibility
 
 #include "/lib/palette.glsl"
@@ -29,5 +28,5 @@ void main() {
     // Set water opacity (0.8 = 80% visible)
     float waterAlpha = 0.8; 
     
-    color = vec4(flatColor * glcolor.rgb * texture(lightmap, lmcoord).rgb, waterAlpha);
+    color = vec4(applyVertexTint(flatColor, glcolor.rgb) * texture(lightmap, lmcoord).rgb, waterAlpha);
 }
