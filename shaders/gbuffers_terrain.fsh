@@ -9,17 +9,19 @@
 #define TEXTURE_STRENGTH 0.25 // How strong the texture hint is [0.1 0.25 0.5 0.75 1.0]
 
 #include "/lib/palette.glsl"
+#include "/lib/ortho.glsl"
+#include "/lib/ortho_fade.glsl"
 
 uniform sampler2D gtexture;
 uniform sampler2D lightmap;
 uniform float alphaTestRef = 0.1;
-uniform vec3 cameraPosition;
 
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
 in vec3 worldPos;
 in vec3 worldNormal;
+in vec3 fragViewPos;
 
 /* RENDERTARGETS: 0,1 */
 layout(location = 0) out vec4 color;
@@ -28,6 +30,9 @@ layout(location = 1) out vec4 normalOut;
 void main() {
     vec4 origTex = texture(gtexture, texcoord);
     if (origTex.a < alphaTestRef) {
+        discard;
+    }
+    if (orthoFadeDiscard(fragViewPos)) {
         discard;
     }
 

@@ -4,6 +4,7 @@
 // #define DEBUG_SHADOWS
 
 #include "/lib/palette.glsl"
+#include "/lib/ortho.glsl"
 
 // Shadow map settings: Iris reads these from the shader source, NOT shaders.properties
 const int   shadowMapResolution     = 4096;
@@ -15,14 +16,11 @@ uniform sampler2D colortex0;
 uniform sampler2D colortex1; // world normals from terrain (a=1 if valid)
 uniform sampler2D depthtex0;
 uniform sampler2D shadowtex0;
-uniform mat4 gbufferProjectionInverse;
 uniform mat4 gbufferModelViewInverse;
 uniform mat4 shadowProjection;
 uniform mat4 shadowModelView;
 uniform vec3 shadowLightPosition; // view space, points toward the sun/moon
 
-uniform float viewWidth;
-uniform float viewHeight;
 
 in vec2 texcoord;
 
@@ -55,11 +53,9 @@ void main() {
     float shadow = 1.0;
     #ifdef SHADOWS
     // derivatives must be taken outside branches
-    vec4 clipPos = vec4(texcoord * 2.0 - 1.0, depth * 2.0 - 1.0, 1.0);
-    vec4 viewPos4 = gbufferProjectionInverse * clipPos;
-    vec3 viewPos = viewPos4.xyz / viewPos4.w;
+    vec3 viewPos = viewPosFromDepth(texcoord, depth);
     vec3 derivNormalView = normalize(cross(dFdx(viewPos), dFdy(viewPos)));
-    if (dot(derivNormalView, -viewPos) < 0.0) derivNormalView = -derivNormalView;
+    if (dot(derivNormalView, viewDirToCamera(viewPos)) < 0.0) derivNormalView = -derivNormalView;
     vec3 derivNormalWorld = mat3(gbufferModelViewInverse) * derivNormalView;
 
     if (depth < 0.9999) {
