@@ -12,7 +12,8 @@ uniform float alphaTestRef = 0.1;
 in vec2 lmcoord;
 in vec2 texcoord;
 in vec4 glcolor;
-in vec3 fragViewPos;
+in vec3 worldPos;
+in vec3 worldNormal;
 
 /* RENDERTARGETS: 0 */
 layout(location = 0) out vec4 color;
@@ -24,7 +25,7 @@ void main() {
     if (origTex.a < alphaTestRef) {
         discard;
     }
-    if (orthoFadeDiscard(fragViewPos)) {
+    if (orthoFadeDiscard(worldPos + cameraPosition, normalize(worldNormal))) {
         discard;
     }
 

@@ -21,7 +21,6 @@ in vec2 texcoord;
 in vec4 glcolor;
 in vec3 worldPos;
 in vec3 worldNormal;
-in vec3 fragViewPos;
 
 /* RENDERTARGETS: 0,1 */
 layout(location = 0) out vec4 color;
@@ -32,7 +31,7 @@ void main() {
     if (origTex.a < alphaTestRef) {
         discard;
     }
-    if (orthoFadeDiscard(fragViewPos)) {
+    if (orthoFadeDiscard(worldPos + cameraPosition, normalize(worldNormal))) {
         discard;
     }
 

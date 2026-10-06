@@ -1,15 +1,16 @@
 #ifndef ORTHO_FADE_GLSL
 #define ORTHO_FADE_GLSL
 
-// Orthographic view: see-through blocks between the camera and the player.
-#define ORTHO_FADE 
-#define ORTHO_FADE_RADIUS 3 // How far around the player blocks fade, in blocks [2 3 4 6 8]
+// Orthographic view: cull (fade) every block between the camera and the player.
+// Fragment shaders only (uses gl_FragCoord). Needs ORTHO_VIEW on to do anything.
+#define ORTHO_FADE // Fade blocks that sit between the camera and the player (ortho view)
+#define ORTHO_FADE_RADIUS 3.0 // Radius of the culling cylinder around the player, in blocks [1.0 2.0 3.0 5.0 8.0]
 #define ORTHO_FADE_OPACITY 0.25 // How much of a faded block stays visible (0 = fully hidden) [0.0 0.15 0.25 0.4 0.6]
+#define ORTHO_FADE_LENGTH 24.0 // How far toward the camera the cylinder reaches, in blocks [12.0 24.0 48.0 96.0]
 
-uniform vec3 eyePosition;
-uniform vec3 cameraPosition;
+uniform vec3 eyePosition;     // player's eyes, absolute world space
+uniform vec3 cameraPosition;  // camera, absolute world space
 uniform mat4 gbufferModelView;
-uniform mat4 gbufferModelViewInverse;
 
 float orthoBayer4(ivec2 p) {
     const float m[16] = float[16](0.0, 8.0, 2.0, 10.0,
@@ -19,31 +20,30 @@ float orthoBayer4(ivec2 p) {
     return (m[(p.x & 3) + (p.y & 3) * 4] + 0.5) / 16.0;
 }
 
-// Returns true if this fragment should be dithered away.
-bool orthoFadeDiscard(vec3 fragView) {
+// absPos / normal: this fragment's absolute world position and face normal.
+// Returns true if the block it belongs to should be faded away.
+bool orthoFadeDiscard(vec3 absPos, vec3 normal) {
     #if defined(ORTHO_VIEW) && defined(ORTHO_FADE)
-        // 1. Convert fragment from view space to world space
-        vec3 fragWorld = (gbufferModelViewInverse * vec4(fragView, 1.0)).xyz + cameraPosition;
+        // Player center in view space (camera is the origin, looking down -z)
+        vec3 playerView = (gbufferModelView * vec4(eyePosition - vec3(0.0, 0.9, 0.0) - cameraPosition, 1.0)).xyz;
 
-        // 2. Get the player's absolute world position
-        vec3 playerWorld = eyePosition;
+        // Whole-block decision: use the center of the block this fragment belongs to
+        vec3 blockCenter = floor(absPos - normal * 0.01) + 0.5;
+        vec3 blockView = (gbufferModelView * vec4(blockCenter - cameraPosition, 1.0)).xyz;
 
-        // 3. Calculate horizontal (XZ) distance from fragment to player
-        vec2 relXZ = fragWorld.xz - playerWorld.xz;
-        float distXZ = length(relXZ);
+        // In an orthographic view every ray from the camera runs parallel to -z,
+        // so the ray through the player is the line (player.x, player.y, any z).
+        // "Between camera and player" = closer to the camera than the player (larger z).
+        float along = blockView.z - playerView.z;
+        if (along < 0.75 || along > ORTHO_FADE_LENGTH) return false;
 
-        // 4. Calculate vertical height above the player's head
-        // (Player's head is roughly eye level minus 0.2 blocks)
-        float heightAboveHead = fragWorld.y - (playerWorld.y - 0.2);
+        // Distance from the ray = the cylinder
+        float dist = length(blockView.xy - playerView.xy);
+        float r = ORTHO_FADE_RADIUS;
+        if (dist > r) return false;
 
-        // 5. Only fade blocks strictly above the head
-        if (heightAboveHead < 0.0) return false;
-
-        // 6. Fade based on horizontal distance (creates a clean vertical cylinder)
-        float r = float(ORTHO_FADE_RADIUS);
-        float keep = mix(ORTHO_FADE_OPACITY, 1.0, smoothstep(r * 0.5, r, distXZ));
-
-        // 7. Bayer dithering
+        // Soft edge: blocks at the rim stay more visible
+        float keep = mix(ORTHO_FADE_OPACITY, 1.0, smoothstep(r * 0.6, r, dist));
         return orthoBayer4(ivec2(gl_FragCoord.xy)) >= keep;
     #else
         return false;

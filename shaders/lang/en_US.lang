@@ -20,3 +20,4 @@ option.ORTHO_SIZE=Ortho Zoom (blocks visible)
 option.ORTHO_FADE=See-Through Near Player
 option.ORTHO_FADE_RADIUS=Fade Radius
 option.ORTHO_FADE_OPACITY=Faded Block Opacity
+option.ORTHO_FADE_LENGTH=Fade Reach (blocks)

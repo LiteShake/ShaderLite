@@ -36,16 +36,43 @@ void main() {
     // 1. OUTLINES
     // ------------------------------------------------------------
     float edge = 0.0;
-    if (depth < 0.9999) {
-        float dRight = texture(depthtex0, texcoord + vec2(texelSize.x, 0.0)).r;
-        float dLeft  = texture(depthtex0, texcoord - vec2(texelSize.x, 0.0)).r;
-        float dUp    = texture(depthtex0, texcoord + vec2(0.0, texelSize.y)).r;
-        float dDown  = texture(depthtex0, texcoord - vec2(0.0, texelSize.y)).r;
 
-        float dx = abs(dRight - dLeft);
-        float dy = abs(dUp - dDown);
-        edge = step(0.002, dx + dy);
+    if (depth < 0.9999) {
+        // 1. Collect all 9 depth samples in a 3x3 grid
+        float tl = texture(depthtex0, texcoord + vec2(-texelSize.x,  texelSize.y)).r; // Top-Left
+        float tc = texture(depthtex0, texcoord + vec2( 0.0,          texelSize.y)).r; // Top-Center
+        float tr = texture(depthtex0, texcoord + vec2( texelSize.x,  texelSize.y)).r; // Top-Right
+
+        float ml = texture(depthtex0, texcoord + vec2(-texelSize.x,  0.0)).r;         // Middle-Left
+        // Center pixel (already sampled as 'depth')
+        float mr = texture(depthtex0, texcoord + vec2( texelSize.x,  0.0)).r;         // Middle-Right
+
+        float bl = texture(depthtex0, texcoord + vec2(-texelSize.x, -texelSize.y)).r; // Bottom-Left
+        float bc = texture(depthtex0, texcoord + vec2( 0.0,         -texelSize.y)).r; // Bottom-Center
+        float br = texture(depthtex0, texcoord + vec2( texelSize.x, -texelSize.y)).r; // Bottom-Right
+
+        // 2. Apply Sobel Horizontal Kernel (Gx)
+        // [ -1,  0,  1 ]
+        // [ -2,  0,  2 ]
+        // [ -1,  0,  1 ]
+        float Gx = (tl * -1.0) + (tr * 1.0) + 
+                (ml * -2.0) + (mr * 2.0) + 
+                (bl * -1.0) + (br * 1.0);
+
+        // 3. Apply Sobel Vertical Kernel (Gy)
+        // [  1,  2,  1 ]
+        // [  0,  0,  0 ]
+        // [ -1, -2, -1 ]
+        float Gy = (tl *  1.0) + (tc *  2.0) + (tr *  1.0) + 
+                (bl * -1.0) + (bc * -2.0) + (br * -1.0);
+
+        // 4. Calculate total gradient magnitude
+        float g = sqrt(Gx * Gx + Gy * Gy);
+
+        // 5. Threshold the edge (you will need to adjust 0.002 since Sobel scales up values)
+        edge = step(0.005, g);
     }
+
 
     // ------------------------------------------------------------
     // 2. HARD SHADOWS
