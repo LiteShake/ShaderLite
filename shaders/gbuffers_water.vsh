@@ -20,5 +20,5 @@ void main() {
     glcolor = gl_Color;
 
     // Wobble the water vertically
-    gl_Position.y += sin(gl_Position.x * 2.0 + frameTimeCounter * 2.0) * 0.05;
+    gl_Position.y += sin(gl_Position.x * 2.0 + frameTimeCounter * 2.0) * 0.005;
 }
